@@ -755,6 +755,7 @@ function is_idcard( $id )
 }
 
 function checkRefererHost(){
+	global $conf;
 	if(!isset($_SERVER['HTTP_REFERER']) || empty($_SERVER['HTTP_REFERER']))return false;
 	$url_arr = parse_url($_SERVER['HTTP_REFERER']);
 	if(!isset($url_arr['host']))return false;
