@@ -755,11 +755,35 @@ function is_idcard( $id )
 }
 
 function checkRefererHost(){
-	if(!$_SERVER['HTTP_REFERER'])return false;
+	if(!isset($_SERVER['HTTP_REFERER']) || empty($_SERVER['HTTP_REFERER']))return false;
 	$url_arr = parse_url($_SERVER['HTTP_REFERER']);
+	if(!isset($url_arr['host']))return false;
+	$referer_host = $url_arr['host'];
 	$http_host = $_SERVER['HTTP_HOST'];
-	if(strpos($http_host,':'))$http_host = substr($http_host, 0, strpos($http_host, ':'));
-	return $url_arr['host'] === $http_host;
+	if(strpos($http_host,':')!==false)$http_host = substr($http_host, 0, strpos($http_host, ':'));
+	if(strpos($referer_host,':')!==false)$referer_host = substr($referer_host, 0, strpos($referer_host, ':'));
+	if($referer_host === $http_host)return true;
+	if(!empty($conf['localurl'])){
+		$local_url_arr = parse_url($conf['localurl']);
+		if(isset($local_url_arr['host']) && $local_url_arr['host'] === $referer_host)return true;
+	}
+	return false;
+}
+function generate_csrf_token() {
+	if(!isset($_SESSION['csrf_token'])) {
+		$_SESSION['csrf_token'] = md5(uniqid(mt_rand(), true));
+	}
+	return $_SESSION['csrf_token'];
+}
+function check_csrf_token($token = null) {
+	if(!isset($_SESSION['csrf_token'])) return false;
+	if($token === null) {
+		$token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : (isset($_GET['csrf_token']) ? $_GET['csrf_token'] : null);
+	}
+	return hash_equals($_SESSION['csrf_token'], $token);
+}
+function csrf_token_input() {
+	return '<input type="hidden" name="csrf_token" value="'.generate_csrf_token().'" />';
 }
 function randFloat($min=0, $max=1){
 	return $min + mt_rand()/mt_getrandmax() * ($max-$min);

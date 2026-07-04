@@ -95,7 +95,7 @@ case 'userPayStat':
 	}
 
 	if($type == 4){
-		$rs=$DB->query("SELECT uid,type,channel,money from pre_transfer where status=1 and paytime>='$startday' and paytime<='$endday'");
+		$rs=$DB->query("SELECT uid,type,channel,money from pre_transfer where status=1 and paytime>=:startday and paytime<=:endday", [':startday'=>$startday, ':endday'=>$endday]);
 		while($row = $rs->fetch())
 		{
 			$money = (float)$row['money'];
@@ -113,7 +113,7 @@ case 'userPayStat':
 			}
 		}
 	}else{
-		$rs=$DB->query("SELECT uid,type,channel,money,realmoney,getmoney,profitmoney from pre_order where status=1 and date>='$startday' and date<='$endday'");
+		$rs=$DB->query("SELECT uid,type,channel,money,realmoney,getmoney,profitmoney from pre_order where status=1 and date>=:startday and date<=:endday", [':startday'=>$startday, ':endday'=>$endday]);
 		while($row = $rs->fetch())
 		{
 			if($type == 3){
@@ -172,7 +172,7 @@ case 'userTransferStat':
 		unset($rs);
 	}
 
-	$rs=$DB->query("SELECT uid,type,channel,money from pre_transfer where status=1 and paytime>='$startday' and paytime<='$endday'");
+	$rs=$DB->query("SELECT uid,type,channel,money from pre_transfer where status=1 and paytime>=:startday and paytime<=:endday", [':startday'=>$startday, ':endday'=>$endday]);
 	while($row = $rs->fetch())
 	{
 		$money = (float)$row['money'];

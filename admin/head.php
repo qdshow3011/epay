@@ -30,6 +30,16 @@ if($admin_cdnpublic==1){
     <script src="<?php echo $cdnpublic?>html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="<?php echo $cdnpublic?>respond.js/1.4.2/respond.min.js"></script>
   <![endif]-->
+  <script>
+  var csrf_token = '<?php echo generate_csrf_token();?>';
+  $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !settings.crossDomain) {
+        xhr.setRequestHeader('X-CSRF-Token', csrf_token);
+      }
+    }
+  });
+  </script>
 </head>
 <body>
 <?php if($islogin==1){?>
