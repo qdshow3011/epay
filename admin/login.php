@@ -10,7 +10,6 @@ if(!function_exists("imagecreate") || !file_exists('code.php'))$verifycode=0;
 include("../includes/common.php");
 
 if(isset($_GET['act']) && $_GET['act']=='login'){
-  if(!checkRefererHost())exit('{"code":403}');
   $username = trim($_POST['username']);
   $password = trim($_POST['password']);
   $code = trim($_POST['code']);
