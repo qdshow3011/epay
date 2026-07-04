@@ -1,0 +1,12 @@
+.git
+.gitignore
+.sisyphus
+docker
+*.md
+.DS_Store
+Thumbs.db
+*.log
+node_modules
+vendor
+config.php
+install/install.lock
