@@ -30,7 +30,7 @@ if(isset($_GET['act']) && $_GET['act']=='login'){
 		$session=md5($username.$password.$password_hash);
 		$expiretime=time() + 2592000;
 		$token=authcode("{$username}\t{$session}\t{$expiretime}", 'ENCODE', SYS_KEY);
-		setcookie("admin_token", $token, $expiretime, null, null, null, true);
+		setcookie("admin_token", $token, $expiretime, '/');
     unset($_SESSION['vc_code']);
     exit(json_encode(['code'=>0]));
   }else{
