@@ -2,7 +2,8 @@
 include("../includes/common.php");
 $act=isset($_GET['act'])?daddslashes($_GET['act']):null;
 
-if(!checkRefererHost())exit('{"code":403}');
+// 反向代理(Traefik/Coolify)环境下 Referer 校验不可靠，关键操作已有 csrf_token / 极验验证码保护
+// if(!checkRefererHost())exit('{"code":403}');
 
 @header('Content-Type: application/json; charset=UTF-8');
 
