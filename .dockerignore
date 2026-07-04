@@ -1,7 +1,6 @@
 .git
 .gitignore
 .sisyphus
-docker
 *.md
 .DS_Store
 Thumbs.db
@@ -10,3 +9,8 @@ node_modules
 vendor
 config.php
 install/install.lock
+docker-compose.yml
+.env.example
+.env
+.dockerignore
+Dockerfile
