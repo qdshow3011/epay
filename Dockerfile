@@ -48,8 +48,10 @@ COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# 设置目录权限
-RUN chown -R www-data:www-data /var/www/html \
+# 创建必要目录并设置权限
+RUN mkdir -p /var/www/html/assets/img/article \
+    && mkdir -p /var/www/html/install \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 777 /var/www/html/assets/img/article \
     && chmod -R 777 /var/www/html/install
