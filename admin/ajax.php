@@ -3,7 +3,7 @@ include("../includes/common.php");
 if($islogin==1){}else exit("<script language='javascript'>window.location.href='./login.php';</script>");
 $act=isset($_GET['act'])?daddslashes($_GET['act']):null;
 
-if(!checkRefererHost())exit('{"code":403}');
+if(!checkRefererHost() && !check_csrf_token(isset($_SERVER['HTTP_X_CSRF_TOKEN'])?$_SERVER['HTTP_X_CSRF_TOKEN']:null))exit('{"code":403}');
 
 @header('Content-Type: application/json; charset=UTF-8');
 
@@ -125,20 +125,18 @@ case 'set':
 	}
 	$ad=$CACHE->clear();
 	if($ad)exit('{"code":0,"msg":"succ"}');
-	else exit('{"code":-1,"msg":"修改设置失败['.$DB->error().']"}');
+	else exit('{"code":-1,"msg":"修改设置失败"}');
 break;
 case 'setGonggao':
 	$id=intval($_GET['id']);
 	$status=intval($_GET['status']);
-	$sql = "UPDATE pre_anounce SET status='$status' WHERE id='$id'";
-	if($DB->exec($sql))exit('{"code":0,"msg":"修改状态成功！"}');
-	else exit('{"code":-1,"msg":"修改状态失败['.$DB->error().']"}');
+	if($DB->update('anounce', ['status'=>$status], ['id'=>$id]))exit('{"code":0,"msg":"修改状态成功！"}');
+	else exit('{"code":-1,"msg":"修改状态失败"}');
 break;
 case 'delGonggao':
 	$id=intval($_GET['id']);
-	$sql = "DELETE FROM pre_anounce WHERE id='$id'";
-	if($DB->exec($sql))exit('{"code":0,"msg":"删除公告成功！"}');
-	else exit('{"code":-1,"msg":"删除公告失败['.$DB->error().']"}');
+	if($DB->delete('anounce', ['id'=>$id]))exit('{"code":0,"msg":"删除公告成功！"}');
+	else exit('{"code":-1,"msg":"删除公告失败"}');
 break;
 case 'iptype':
 	$result = [
@@ -152,22 +150,44 @@ break;
 case 'setArticle': //文章状态
 	$id=intval($_GET['id']);
 	$active=intval($_GET['active']);
-	$DB->exec("update pre_article set active='$active' where id='{$id}'");
+	$DB->update('article', ['active'=>$active], ['id'=>$id]);
 	exit('{"code":0,"msg":"succ"}');
 break;
 case 'article_upload':
+	if(!isset($_FILES['imgFile']) || $_FILES['imgFile']['error'] !== UPLOAD_ERR_OK){
+		exit('{"error":1,"message":"上传文件错误"}');
+	}
 	$file_name = $_FILES['imgFile']['name'];
 	$tmp_name = $_FILES['imgFile']['tmp_name'];
-	//获得文件扩展名
+	$file_size = $_FILES['imgFile']['size'];
+	
+	if($file_size > 5 * 1024 * 1024){
+		exit('{"error":1,"message":"上传文件大小不能超过5MB"}');
+	}
+	
+	$finfo = new \finfo(FILEINFO_MIME_TYPE);
+	$mime_type = $finfo->file($tmp_name);
+	$allowed_mime = ['image/gif', 'image/jpeg', 'image/png', 'image/bmp', 'image/webp'];
+	if(!in_array($mime_type, $allowed_mime)){
+		exit('{"error":1,"message":"上传文件类型不正确"}');
+	}
+	
 	$temp_arr = explode(".", $file_name);
 	$file_ext = array_pop($temp_arr);
 	$file_ext = strtolower(trim($file_ext));
 	if (in_array($file_ext, array('gif', 'jpg', 'jpeg', 'png', 'bmp', 'webp')) === false) {
 		exit('{"error":1,"message":"上传文件扩展名是不允许的扩展名。"}');
 	}
+	
 	$filename = md5_file($tmp_name).'.'.$file_ext;
 	$fileurl = '/assets/img/article/'.$filename;
+	
+	if(!is_dir(ROOT.'assets/img/article/')){
+		mkdir(ROOT.'assets/img/article/', 0755, true);
+	}
+	
 	if(copy($tmp_name, ROOT.'assets/img/article/'.$filename)){
+		chmod(ROOT.'assets/img/article/'.$filename, 0644);
 		exit('{"error":0,"url":"'.$fileurl.'"}');
 	}else{
 		exit('{"error":1,"message":"上传失败，请确保有本地写入权限"}');

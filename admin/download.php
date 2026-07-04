@@ -37,13 +37,13 @@ function text_encoding($text){
 switch($act){
 case 'settle':
 $type = isset($_GET['type'])?trim($_GET['type']):'common';
-$batch=$_GET['batch'];
+$batch=daddslashes($_GET['batch']);
 $remark = text_encoding($conf['transfer_desc']);
 
 if($type == 'mybank'){
 	$data="收款方名称,收款方账号,收款方开户行名称,收款行联行号,金额,附言/用途\r\n";
 	
-	$rs=$DB->query("SELECT * from pre_settle where batch='$batch' and (type=1 or type=4) order by id asc");
+	$rs=$DB->query("SELECT * from pre_settle where batch=:batch and (type=1 or type=4) order by id asc", [':batch'=>$batch]);
 	$i=0;
 	while($row = $rs->fetch())
 	{
@@ -55,7 +55,7 @@ if($type == 'mybank'){
 	$data="支付宝批量付款文件模板\r\n";
 	$data.="序号（必填）,收款方支付宝账号（必填）,收款方姓名（必填）,金额（必填，单位：元）,备注（选填）\r\n";
 
-	$rs=$DB->query("SELECT * from pre_settle where batch='$batch' and type=1 order by id asc");
+	$rs=$DB->query("SELECT * from pre_settle where batch=:batch and type=1 order by id asc", [':batch'=>$batch]);
 	$i=0;
 	while($row = $rs->fetch())
 	{
@@ -70,7 +70,7 @@ if($type == 'mybank'){
 	$wxinfo = \lib\Channel::getWeixin($channel['appwxmp']);
 	if(!$wxinfo)sysmsg(mb_convert_encoding("支付通道绑定的微信公众号不存在", "UTF-8", "GB2312"));
 
-	$rs=$DB->query("SELECT * from pre_settle where batch='$batch' and type=2 order by id asc");
+	$rs=$DB->query("SELECT * from pre_settle where batch=:batch and type=2 order by id asc", [':batch'=>$batch]);
 	$i=0;
 	$table="商家明细单号（必填）,收款用户openid（必填）,收款用户姓名（选填）,收款用户身份证（选填）,转账金额（必填，单位：元）,转账备注（必填）\r\n";
 	$allmoney = 0;
@@ -94,7 +94,7 @@ if($type == 'mybank'){
 
 }else{
 	$data="序号,收款方式,收款账号,收款人姓名,付款金额（元）,付款理由\r\n";
-	$rs=$DB->query("SELECT * from pre_settle where batch='$batch' order by type asc,id asc");
+	$rs=$DB->query("SELECT * from pre_settle where batch=:batch order by type asc,id asc", [':batch'=>$batch]);
 	$i=0;
 	while($row = $rs->fetch())
 	{
@@ -144,7 +144,7 @@ if($method == 'type'){
 }
 
 if($type == 4){
-	$rs=$DB->query("SELECT uid,type,channel,money from pre_transfer where status=1 and paytime>='$startday' and paytime<='$endday'");
+	$rs=$DB->query("SELECT uid,type,channel,money from pre_transfer where status=1 and paytime>=:startday and paytime<=:endday", [':startday'=>$startday, ':endday'=>$endday]);
 	while($row = $rs->fetch())
 	{
 		$money = (float)$row['money'];
@@ -162,7 +162,7 @@ if($type == 4){
 		}
 	}
 }else{
-	$rs=$DB->query("SELECT uid,type,channel,money,realmoney,getmoney,profitmoney from pre_order where status=1 and date>='$startday' and date<='$endday'");
+	$rs=$DB->query("SELECT uid,type,channel,money,realmoney,getmoney,profitmoney from pre_order where status=1 and date>=:startday and date<=:endday", [':startday'=>$startday, ':endday'=>$endday]);
 	while($row = $rs->fetch())
 	{
 		if($type == 3){
