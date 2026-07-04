@@ -759,15 +759,28 @@ function checkRefererHost(){
 	$url_arr = parse_url($_SERVER['HTTP_REFERER']);
 	if(!isset($url_arr['host']))return false;
 	$referer_host = $url_arr['host'];
+	if(strpos($referer_host,':')!==false)$referer_host = substr($referer_host, 0, strpos($referer_host, ':'));
+	$hosts = array();
 	$http_host = $_SERVER['HTTP_HOST'];
 	if(strpos($http_host,':')!==false)$http_host = substr($http_host, 0, strpos($http_host, ':'));
-	if(strpos($referer_host,':')!==false)$referer_host = substr($referer_host, 0, strpos($referer_host, ':'));
-	if($referer_host === $http_host)return true;
+	$hosts[] = $http_host;
+	if(!empty($_SERVER['HTTP_X_FORWARDED_HOST'])){
+		$x_hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
+		foreach($x_hosts as $h){
+			$h = trim($h);
+			if(strpos($h,':')!==false)$h = substr($h, 0, strpos($h, ':'));
+			$hosts[] = $h;
+		}
+	}
 	if(!empty($conf['localurl'])){
 		$local_url_arr = parse_url($conf['localurl']);
-		if(isset($local_url_arr['host']) && $local_url_arr['host'] === $referer_host)return true;
+		if(isset($local_url_arr['host'])){
+			$lh = $local_url_arr['host'];
+			if(strpos($lh,':')!==false)$lh = substr($lh, 0, strpos($lh, ':'));
+			$hosts[] = $lh;
+		}
 	}
-	return false;
+	return in_array($referer_host, $hosts);
 }
 function generate_csrf_token() {
 	if(!isset($_SESSION['csrf_token'])) {

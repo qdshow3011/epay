@@ -23,6 +23,15 @@ mkdir -p /var/www/html/assets/img/article
 chown -R www-data:www-data /var/www/html/assets/img/article
 chmod -R 777 /var/www/html/assets/img/article
 
+# 确保 install.lock 存在（数据库已在 db-init.sh 中初始化）
+if [ ! -f /var/www/html/install/install.lock ]; then
+    echo "docker" > /var/www/html/install/install.lock
+    echo "[entrypoint] 已创建 install.lock"
+fi
+
+# 确保 config.php 可写
+chown www-data:www-data /var/www/html/config.php 2>/dev/null || true
+
 # 启动 PHP-FPM（后台运行）
 echo "[entrypoint] 启动 PHP-FPM..."
 php-fpm -D
