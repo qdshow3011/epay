@@ -128,6 +128,10 @@ case 'connect':
 	exit(json_encode($result));
 break;
 case 'captcha':
+	// 极验未配置时返回 disabled 标识，前端跳过验证码直接发送
+	if(empty($conf['captcha_id']) || empty($conf['captcha_key'])){
+		exit(json_encode(['success'=>0, 'gt'=>'', 'challenge'=>'', 'new_captcha'=>0, 'disabled'=>1]));
+	}
 	$GtSdk = new \lib\GeetestLib($conf['captcha_id'], $conf['captcha_key']);
 	$data = array(
 		'user_id' => isset($uid)?$uid:'public',
@@ -145,8 +149,11 @@ case 'sendcode':
 		exit('{"code":-1,"msg":"请勿频繁发送验证码"}');
 	}
 
-	if(!isset($_SESSION['gtserver']))exit('{"code":-1,"msg":"验证加载失败"}');
-	if(!verify_captcha())exit('{"code":-1,"msg":"验证失败，请重新验证"}');
+	// 极验未配置时跳过验证码校验
+	if(!empty($conf['captcha_id']) && !empty($conf['captcha_key'])){
+		if(!isset($_SESSION['gtserver']))exit('{"code":-1,"msg":"验证加载失败"}');
+		if(!verify_captcha())exit('{"code":-1,"msg":"验证失败，请重新验证"}');
+	}
 
 	if($conf['verifytype']==1){
 		$row=$DB->getRow("select * from pre_user where phone=:phone limit 1", [':phone'=>$sendto]);
@@ -285,8 +292,11 @@ case 'sendcode2':
 		exit('{"code":-1,"msg":"请勿频繁发送验证码"}');
 	}
 
-	if(!isset($_SESSION['gtserver']))exit('{"code":-1,"msg":"验证加载失败"}');
-	if(!verify_captcha())exit('{"code":-1,"msg":"验证失败，请重新验证"}');
+	// 极验未配置时跳过验证码校验
+	if(!empty($conf['captcha_id']) && !empty($conf['captcha_key'])){
+		if(!isset($_SESSION['gtserver']))exit('{"code":-1,"msg":"验证加载失败"}');
+		if(!verify_captcha())exit('{"code":-1,"msg":"验证失败，请重新验证"}');
+	}
 
 	if($verifytype=='phone'){
 		$userrow=$DB->getRow("select * from pre_user where phone=:phone limit 1", [':phone'=>$sendto]);

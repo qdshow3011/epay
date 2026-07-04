@@ -183,18 +183,58 @@ $(document).ready(function(){
 		dataType: "json",
 		success: function (data) {
 			console.log(data);
-			// 使用initGeetest接口
-			// 参数1：配置参数
-			// 参数2：回调，回调的第一个参数验证码对象，之后可以使用它做appendTo之类的事件
-			initGeetest({
-				width: '100%',
-				gt: data.gt,
-				challenge: data.challenge,
-				new_captcha: data.new_captcha,
-				product: "bind", // 产品形式，包括：float，embed，popup。注意只对PC版验证码有效
-				offline: !data.success // 表示用户后台检测极验服务器是否宕机，一般不需要关注
-				// 更多配置参数请参见：http://www.geetest.com/install/sections/idx-client-sdk.html#config
-			}, handlerEmbed);
+			if(data.disabled == 1){
+				// 极验未配置：直接绑定 sendcode 点击事件，跳过验证码
+				$('#sendcode').click(function () {
+					if ($(this).attr("data-lock") === "true") return;
+					var type = $("select[name='type']").val();
+					var sendto=$("input[name='account']").val();
+					if(type=='phone'){
+						if(sendto==''){layer.alert('手机号码不能为空！');return false;}
+						if(sendto.length!=11){layer.alert('手机号码不正确！');return false;}
+					}else{
+						if(sendto==''){layer.alert('邮箱不能为空！');return false;}
+						var reg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/;
+						if(!reg.test(sendto)){layer.alert('邮箱格式不正确！');return false;}
+					}
+					var ii = layer.load(2, {shade:[0.1,'#fff']});
+					$.ajax({
+						type : "POST",
+						url : "ajax.php?act=sendcode2",
+						data : {type:type, sendto:sendto},
+						dataType : 'json',
+						success : function(data) {
+							layer.close(ii);
+							if(data.code == 0){
+								new invokeSettime("#sendcode");
+								layer.msg('发送成功，请注意查收！');
+							}else{
+								layer.alert(data.msg);
+							}
+						},
+						error:function(){
+							layer.close(ii);
+							layer.msg('服务器错误');
+						}
+					});
+				});
+			}else{
+				// 使用initGeetest接口
+				// 参数1：配置参数
+				// 参数2：回调，回调的第一个参数验证码对象，之后可以使用它做appendTo之类的事件
+				initGeetest({
+					width: '100%',
+					gt: data.gt,
+					challenge: data.challenge,
+					new_captcha: data.new_captcha,
+					product: "bind", // 产品形式，包括：float，embed，popup。注意只对PC版验证码有效
+					offline: !data.success // 表示用户后台检测极验服务器是否宕机，一般不需要关注
+					// 更多配置参数请参见：http://www.geetest.com/install/sections/idx-client-sdk.html#config
+				}, handlerEmbed);
+			}
+		},
+		error:function(){
+			layer.msg('验证码服务加载失败');
 		}
 	});
 });
