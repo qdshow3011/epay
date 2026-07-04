@@ -5,14 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: epay-app
     restart: unless-stopped
-    ports:
-      - "${WEB_PORT:-8080}:80"
+    expose:
+      - "80"
     volumes:
-      # 仅挂载需要持久化的目录（上传文件等），代码已构建进镜像
       - epay-uploads:/var/www/html/assets/img/article
-      - ./docker/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini:ro
     environment:
       - DB_HOST=${DB_HOST:-db}
       - DB_PORT=${DB_PORT:-3306}
@@ -20,14 +17,10 @@ services:
       - DB_USER=${DB_USER:-epay}
       - DB_PASSWORD=${DB_PASSWORD:-epay123}
     depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - epay-network
+      - db
 
   db:
     image: mysql:5.7
-    container_name: epay-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
@@ -38,8 +31,6 @@ services:
       - epay-db-data:/var/lib/mysql
       - ./install/install.sql:/epay-install.sql:ro
       - ./docker/db-init.sh:/docker-entrypoint-initdb.d/db-init.sh:ro
-    ports:
-      - "${DB_PORT:-3306}:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --sql-mode=''
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root123}"]
@@ -47,26 +38,15 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-    networks:
-      - epay-network
 
   redis:
     image: redis:7-alpine
-    container_name: epay-redis
     restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - epay-redis-data:/data
     command: redis-server --appendonly yes
-    networks:
-      - epay-network
 
 volumes:
   epay-db-data:
   epay-redis-data:
   epay-uploads:
-
-networks:
-  epay-network:
-    driver: bridge
