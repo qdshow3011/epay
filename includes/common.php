@@ -95,7 +95,7 @@ if($conf['cdnpublic']==1){
 }elseif($conf['cdnpublic']==2){
 	$cdnpublic = 'https://s4.zstatic.net/ajax/libs/';
 }elseif($conf['cdnpublic']==4){
-	$cdnpublic = '//lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/';
+	$cdnpublic = '//lib.baomitu.com/';
 }else{
 	$cdnpublic = '//mirrors.sustech.edu.cn/cdnjs/ajax/libs/';
 }
